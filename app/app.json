@@ -74,7 +74,11 @@
       "typedRoutes": false
     },
     "extra": {
-      "apiUrl": "https://landconnect-api.onrender.com"
-    }
+      "apiUrl": "https://landconnect-api.onrender.com",
+      "eas": {
+        "projectId": "6e4f71c1-b18a-4b82-8f45-ae7fb587ec09"
+      }
+    },
+    "owner": "krishna2700"
   }
 }
