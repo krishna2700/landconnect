@@ -1,0 +1,80 @@
+{
+  "expo": {
+    "name": "LandConnect",
+    "slug": "landconnect",
+    "scheme": "landconnect",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.krishnaruparelia.landconnect",
+      "infoPlist": {
+        "NSCameraUsageDescription": "LandConnect uses the camera for video calls and listing photos.",
+        "NSMicrophoneUsageDescription": "LandConnect uses the microphone for voice and video calls."
+      }
+    },
+    "android": {
+      "package": "com.krishnaruparelia.landconnect",
+      "adaptiveIcon": {
+        "backgroundColor": "#075E54",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.BLUETOOTH_CONNECT"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "LandConnect needs your photos to add pictures to a listing."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "LandConnect uses your location to place a listing on the map."
+        }
+      ],
+      [
+        "@livekit/react-native-expo-plugin",
+        {
+          "android": {
+            "audioType": "communication"
+          }
+        }
+      ],
+      "@config-plugins/react-native-webrtc",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    },
+    "extra": {
+      "apiUrl": "https://landconnect-api.onrender.com"
+    }
+  }
+}

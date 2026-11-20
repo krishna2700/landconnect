@@ -1,0 +1,13 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.db
+
+# Node / Expo (app/.gitignore covers the rest)
+node_modules/
+
+# Local env
+.env
+.env.local

@@ -1,0 +1,49 @@
+# Render Blueprint: API + Postgres + the web build of the app.
+# Deploy: Render dashboard -> New -> Blueprint -> pick this repo.
+# Then fill in the LiveKit values (marked sync: false) when Render asks.
+databases:
+  - name: landconnect-db
+    plan: free
+    databaseName: landconnect
+    user: landconnect
+
+services:
+  - type: web
+    name: landconnect-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.3
+      - key: DATABASE_URL
+        fromDatabase:
+          name: landconnect-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SEED_DEMO_DATA
+        value: "true"
+      - key: LIVEKIT_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+
+  - type: web
+    name: landconnect-web
+    runtime: static
+    rootDir: app
+    buildCommand: npm ci && npx expo export --platform web
+    staticPublishPath: dist
+    envVars:
+      - key: EXPO_PUBLIC_API_URL
+        value: https://landconnect-api.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
