@@ -12,6 +12,16 @@ A land marketplace app where buyers, sellers and brokers find land, chat, and ma
 
 Technical write-up, architecture and AI-tool usage: [docs/TECHNICAL.md](docs/TECHNICAL.md).
 
+## Try it
+
+| | |
+|---|---|
+| Android APK | https://expo.dev/artifacts/eas/_EGWZhkSFwxclkJf2lSkDybAZmbSa6l32d7L4cpv-EI.apk |
+| Web app | https://landconnect-web.onrender.com |
+| API (OpenAPI docs) | https://landconnect-api.onrender.com/docs |
+
+The API runs on Render's free tier and sleeps when idle, so open https://landconnect-api.onrender.com/health first and wait until it shows `"ok":true` (up to a minute).
+
 ## Features
 
 - **Accounts and roles**: sign up as Buyer, Seller or Broker. JWT auth, bcrypt passwords.
