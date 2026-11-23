@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import uuid
-from datetime import timezone
+from datetime import timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import exists, or_, select
@@ -21,6 +21,7 @@ router = APIRouter(prefix="/calls", tags=["calls"])
 log = logging.getLogger("landconnect.calls")
 
 ACTIVE = (CallStatus.ringing, CallStatus.accepted)
+MAX_CALL_HOURS = 3
 _timeouts: set[asyncio.Task] = set()
 
 
@@ -29,6 +30,41 @@ def _get_call(db: Session, call_id: int, me: User) -> Call:
     if call is None or me.id not in (call.caller_id, call.callee_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Call not found")
     return call
+
+
+def _aware(dt):  # SQLite drops tzinfo on read; Postgres keeps it
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+def _clear_stale(db: Session, caller_id: int, callee_id: int) -> list[tuple[list[int], dict]]:
+    """Close calls that can't really still be live, so a lost state never blocks new calls.
+
+    - A call still "ringing" past the ring timeout: the in-memory timer was lost
+      (e.g. the free-tier server slept or restarted), so mark it missed now.
+    - Any "accepted" call of the person starting a new call: they've left it.
+    - An "accepted" call older than MAX_CALL_HOURS: the app was killed without hanging up.
+    """
+    now = utcnow()
+    ring_cutoff = now - timedelta(seconds=get_settings().ring_timeout_seconds + 15)
+    call_cutoff = now - timedelta(hours=MAX_CALL_HOURS)
+    events = []
+    calls = db.scalars(
+        select(Call).where(
+            or_(Call.caller_id.in_([caller_id, callee_id]), Call.callee_id.in_([caller_id, callee_id])),
+            Call.status.in_(ACTIVE),
+        )
+    ).all()
+    for call in calls:
+        if call.status == CallStatus.ringing and _aware(call.created_at) < ring_cutoff:
+            payload = _finish(db, call, CallStatus.missed)
+        elif call.status == CallStatus.accepted and (
+            caller_id in (call.caller_id, call.callee_id) or _aware(call.answered_at or call.created_at) < call_cutoff
+        ):
+            payload = _finish(db, call, CallStatus.ended)
+        else:
+            continue
+        events.append(([call.caller_id, call.callee_id], payload))
+    return events
 
 
 def _is_busy(db: Session, user_id: int) -> bool:
@@ -47,10 +83,7 @@ def _is_busy(db: Session, user_id: int) -> bool:
 def _fmt_duration(call: Call) -> str:
     if not (call.answered_at and call.ended_at):
         return ""
-    def aware(dt):  # SQLite drops tzinfo on read; Postgres keeps it
-        return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
-
-    secs = max(0, int((aware(call.ended_at) - aware(call.answered_at)).total_seconds()))
+    secs = max(0, int((_aware(call.ended_at) - _aware(call.answered_at)).total_seconds()))
     return f"{secs // 60}:{secs % 60:02d}"
 
 
@@ -120,6 +153,8 @@ def start_call(body: CallIn, tasks: BackgroundTasks, me: User = Depends(current_
                 status.HTTP_403_FORBIDDEN,
                 f"{callee.name} only takes calls after replying to your chat. Send a message first.",
             )
+    for users, payload in _clear_stale(db, me.id, callee.id):
+        tasks.add_task(hub.send_many, users, "call_updated", payload)
     if _is_busy(db, me.id):
         raise HTTPException(status.HTTP_409_CONFLICT, "You're already on a call")
     if _is_busy(db, callee.id):

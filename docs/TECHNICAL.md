@@ -1,4 +1,4 @@
-# LandConnect: technical documentation
+﻿# LandConnect: technical documentation
 
 ## 1. Technologies and frameworks
 
@@ -17,21 +17,21 @@
 ## 2. Architecture
 
 ```
- ┌──────────── Expo app (Android / web) ─────────────┐
- │ Screens (Expo Router)                             │
- │   Chats · Community · Calls · Profile             │
- │   Chat · Listing · Edit · Call · Meeting · Room   │
- │ Providers: Session → Realtime(WebSocket) → Calls  │
- └──────┬──────────────────┬───────────────┬─────────┘
-        │ REST (JWT)       │ WS /ws?token= │ WebRTC media
-        ▼                  ▼               ▼
- ┌──────────── FastAPI ─────────────┐   ┌───────────┐
- │ routers: users, listings, chats, │   │  LiveKit  │
- │          calls, rooms            │   │   (SFU)   │
- │ realtime.Hub (user → sockets)    │   └───────────┘
- │ media.py: room-scoped JWTs ──────┼──────────▲
- └──────────────┬───────────────────┘
-                ▼
+ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Expo app (Android / web) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+ â”‚ Screens (Expo Router)                             â”‚
+ â”‚   Chats Â· Community Â· Calls Â· Profile             â”‚
+ â”‚   Chat Â· Listing Â· Edit Â· Call Â· Meeting Â· Room   â”‚
+ â”‚ Providers: Session â†’ Realtime(WebSocket) â†’ Calls  â”‚
+ â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+        â”‚ REST (JWT)       â”‚ WS /ws?token= â”‚ WebRTC media
+        â–¼                  â–¼               â–¼
+ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ FastAPI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+ â”‚ routers: users, listings, chats, â”‚   â”‚  LiveKit  â”‚
+ â”‚          calls, rooms            â”‚   â”‚   (SFU)   â”‚
+ â”‚ realtime.Hub (user â†’ sockets)    â”‚   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+ â”‚ media.py: room-scoped JWTs â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–²
+ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                â–¼
            PostgreSQL
 ```
 
@@ -83,7 +83,7 @@ Meeting rooms use the same token mechanism. Only the host and invited users can 
 ## 4. Challenges and how they were solved
 
 - **WebRTC in Expo.** LiveKit's native WebRTC module is not in Expo Go. The app uses LiveKit's Expo config plugins and a custom `index.js` entry that calls `registerGlobals()` before Expo Router loads. APKs are built with EAS. The web build uses `livekit-client` directly, so a phone can call a browser.
-- **Missed calls without a job queue.** An `asyncio` task scheduled after the call is created checks back after the ring timeout and marks the call missed only if it is still ringing. This keeps the state machine correct when accept and timeout race.
+- **Missed calls without a job queue.** An `asyncio` task scheduled after the call is created checks back after the ring timeout and marks the call missed only if it is still ringing. This keeps the state machine correct when accept and timeout race. Because that timer lives in memory, it is lost if the free-tier server sleeps or restarts, so starting a call also closes stale calls first: ringing past the timeout becomes missed, and an accepted call the caller abandoned is ended.
 - **Socket gaps.** The realtime provider:
   - reconnects with exponential backoff and when the app returns to the foreground;
   - pings every 25 s so Render's proxy doesn't drop idle sockets.
@@ -93,7 +93,7 @@ Meeting rooms use the same token mechanism. Only the host and invited users can 
 
 ## 5. Testing
 
-- `backend/tests/test_api.py` has 10 tests:
+- `backend/tests/test_api.py` has 11 tests:
   - registration, login, duplicate email;
   - role permissions;
   - owner-only edits and location privacy;
@@ -101,6 +101,7 @@ Meeting rooms use the same token mechanism. Only the host and invited users can 
   - chat, unread counts and read receipts;
   - the full call lifecycle: ring, busy, accept, end, call-log message;
   - decline and cancel;
+  - stale calls (lost ring timer, abandoned call) never block new calls;
   - the call-privacy policy;
   - meeting-room access;
   - live WebSocket push.

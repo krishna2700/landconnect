@@ -156,6 +156,35 @@ def test_decline_and_cancel(client):
     assert len(client.get("/calls", headers=seller).json()) == 2
 
 
+def test_stale_calls_do_not_block_new_calls(client):
+    """A ringing call whose timer was lost (server slept) or a call the caller abandoned must not cause 409s."""
+    from datetime import timedelta
+
+    from app.db import SessionLocal
+    from app.models import Call, utcnow
+
+    _, buyer = signup(client, "buyer")
+    seller_u, seller = signup(client, "seller")
+    conv = client.post("/conversations", json={"user_id": seller_u["id"]}, headers=buyer).json()
+
+    stale = client.post("/calls", json={"conversation_id": conv["id"], "kind": "video"}, headers=buyer).json()["call"]
+    with SessionLocal() as db:
+        db.get(Call, stale["id"]).created_at = utcnow() - timedelta(hours=1)
+        db.commit()
+    fresh = client.post("/calls", json={"conversation_id": conv["id"], "kind": "video"}, headers=buyer)
+    assert fresh.status_code == 201, fresh.text
+    history = {c["id"]: c["status"] for c in client.get("/calls", headers=buyer).json()}
+    assert history[stale["id"]] == "missed"
+
+    # The callee picks up, then the caller's app dies without hanging up and they call again.
+    call_id = fresh.json()["call"]["id"]
+    client.post(f"/calls/{call_id}/accept", headers=seller)
+    again = client.post("/calls", json={"conversation_id": conv["id"], "kind": "audio"}, headers=buyer)
+    assert again.status_code == 201, again.text
+    history = {c["id"]: c["status"] for c in client.get("/calls", headers=buyer).json()}
+    assert history[call_id] == "ended"
+
+
 def test_call_privacy_policy(client):
     _, buyer = signup(client, "buyer")
     seller_u, seller = signup(client, "seller")
