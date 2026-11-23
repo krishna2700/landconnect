@@ -1,4 +1,4 @@
-﻿# LandConnect: technical documentation
+# LandConnect: technical documentation
 
 ## 1. Technologies and frameworks
 
@@ -17,21 +17,21 @@
 ## 2. Architecture
 
 ```
- â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Expo app (Android / web) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
- â”‚ Screens (Expo Router)                             â”‚
- â”‚   Chats Â· Community Â· Calls Â· Profile             â”‚
- â”‚   Chat Â· Listing Â· Edit Â· Call Â· Meeting Â· Room   â”‚
- â”‚ Providers: Session â†’ Realtime(WebSocket) â†’ Calls  â”‚
- â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-        â”‚ REST (JWT)       â”‚ WS /ws?token= â”‚ WebRTC media
-        â–¼                  â–¼               â–¼
- â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ FastAPI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
- â”‚ routers: users, listings, chats, â”‚   â”‚  LiveKit  â”‚
- â”‚          calls, rooms            â”‚   â”‚   (SFU)   â”‚
- â”‚ realtime.Hub (user â†’ sockets)    â”‚   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
- â”‚ media.py: room-scoped JWTs â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–²
- â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                â–¼
+ ┌──────────── Expo app (Android / web) ─────────────┐
+ │ Screens (Expo Router)                             │
+ │   Chats · Community · Calls · Profile             │
+ │   Chat · Listing · Edit · Call · Meeting · Room   │
+ │ Providers: Session → Realtime(WebSocket) → Calls  │
+ └──────┬──────────────────┬───────────────┬─────────┘
+        │ REST (JWT)       │ WS /ws?token= │ WebRTC media
+        ▼                  ▼               ▼
+ ┌──────────── FastAPI ─────────────┐   ┌───────────┐
+ │ routers: users, listings, chats, │   │  LiveKit  │
+ │          calls, rooms            │   │   (SFU)   │
+ │ realtime.Hub (user → sockets)    │   └───────────┘
+ │ media.py: room-scoped JWTs ──────┼──────────▲
+ └──────────────┬───────────────────┘
+                ▼
            PostgreSQL
 ```
 

@@ -1,4 +1,4 @@
-﻿# LandConnect
+# LandConnect
 
 A land marketplace app where buyers, sellers and brokers find land, chat, and make **in-app voice and video calls** without sharing phone numbers. The UI follows WhatsApp's patterns: chat list, chat bubbles with read ticks, a full-screen incoming-call screen, and call logs in the chat.
 
@@ -26,7 +26,7 @@ Technical write-up, architecture and AI-tool usage: [docs/TECHNICAL.md](docs/TEC
   - Unanswered calls become "Missed" after 45 s.
   - Busy detection.
   - In-call controls: mute, camera on/off, flip camera, hang up.
-  - Every call leaves a log line in the chat ("Video call Â· 2:31", "Missed voice call").
+  - Every call leaves a log line in the chat ("Video call · 2:31", "Missed voice call").
 - **Meeting rooms**: create a group video room, optionally tied to a listing (e.g. a site walkthrough with seller, broker and buyers), invite people, and join from the Calls tab.
 - **Privacy and access control**:
   - Phone and email are never returned to other users.
@@ -95,7 +95,7 @@ EAS prints a download link for the `.apk`. Before building, set `extra.apiUrl` i
 - a free PostgreSQL database
 - a static site with the web build of the app
 
-In Render, choose **New â†’ Blueprint**, pick this repo, and enter the three LiveKit values when asked. If Render gives the services different URLs, update `EXPO_PUBLIC_API_URL` in `render.yaml` and `extra.apiUrl` in `app/app.json`.
+In Render, choose **New → Blueprint**, pick this repo, and enter the three LiveKit values when asked. If Render gives the services different URLs, update `EXPO_PUBLIC_API_URL` in `render.yaml` and `extra.apiUrl` in `app/app.json`.
 
 Free Render services sleep when idle, so the first request after a while takes about a minute.
 
