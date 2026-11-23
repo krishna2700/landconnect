@@ -19,7 +19,9 @@ export default function CallStage({ media, ...props }: StageProps & { media: Med
       connect
       audio
       video={props.video}
-      options={{ adaptiveStream: { pixelDensity: 'screen' }, dynacast: true }}
+      // adaptiveStream off so the remote video is always sent at full quality, even if the
+      // view's visibility isn't detected.
+      options={{ adaptiveStream: false, dynacast: true }}
       onDisconnected={props.onLeave}
       onError={(e) => {
         reportMediaError(e);
@@ -29,7 +31,15 @@ export default function CallStage({ media, ...props }: StageProps & { media: Med
       <StageBody
         {...props}
         renderVideo={(trackRef, style, mirror) => (
-          <VideoTrack key={trackRef.publication.trackSid} trackRef={trackRef} style={style} objectFit="cover" mirror={mirror} />
+          <VideoTrack
+            key={trackRef.publication.trackSid}
+            trackRef={trackRef}
+            style={style}
+            objectFit="cover"
+            mirror={mirror}
+            // Android stacks video surfaces by zOrder: remote video behind, own camera preview on top.
+            zOrder={trackRef.participant.isLocal ? 1 : 0}
+          />
         )}
       />
     </LiveKitRoom>
