@@ -16,9 +16,10 @@ Technical write-up, architecture and AI-tool usage: [docs/TECHNICAL.md](docs/TEC
 
 | | |
 |---|---|
-| Android APK | https://expo.dev/artifacts/eas/_EGWZhkSFwxclkJf2lSkDybAZmbSa6l32d7L4cpv-EI.apk |
+| Android APK | https://expo.dev/artifacts/eas/AJbx2ggyjrk-Fg7vWqdw08gUD-0p5L2vR_Oke7cXUqs.apk |
 | Web app | https://landconnect-web.onrender.com |
 | API (OpenAPI docs) | https://landconnect-api.onrender.com/docs |
+| Demo video (2 min, two phones side by side) | [docs/demo-two-phones.mp4](docs/demo-two-phones.mp4) |
 
 The API runs on Render's free tier and sleeps when idle, so open https://landconnect-api.onrender.com/health first and wait until it shows `"ok":true` (up to a minute).
 
