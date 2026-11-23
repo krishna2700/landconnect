@@ -32,7 +32,8 @@ export default function CallStage({ media, ...props }: StageProps & { media: Med
         {...props}
         renderVideo={(trackRef, style, mirror) => (
           <VideoTrack
-            key={trackRef.publication.trackSid}
+            // Remount if the underlying media track changes (resubscribe, camera restart).
+            key={`${trackRef.publication.trackSid}:${trackRef.publication.track?.mediaStreamTrack?.id ?? 'none'}`}
             trackRef={trackRef}
             style={style}
             objectFit="cover"

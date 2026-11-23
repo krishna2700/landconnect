@@ -49,7 +49,11 @@ export function StageBody({ mode, video, title, waitingText, onLeave, renderVide
   const room = useRoomContext();
   const remotes = useRemoteParticipants();
   const { localParticipant, isMicrophoneEnabled, isCameraEnabled } = useLocalParticipant();
+  // Local camera: include it before it's "subscribed" (local tracks never are).
   const tracks = useTracks([Track.Source.Camera], { onlySubscribed: false });
+  // Remote cameras: only once the media has arrived. The native VideoTrack reads
+  // publication.track when it mounts, so mounting it before subscription leaves it blank.
+  const subscribed = useTracks([Track.Source.Camera], { onlySubscribed: true });
   const [facing, setFacing] = useState<'user' | 'environment'>('user');
   const peerJoined = useRef(false);
   const elapsed = useElapsed(remotes.length > 0);
@@ -78,8 +82,8 @@ export function StageBody({ mode, video, title, waitingText, onLeave, renderVide
   };
 
   const local = tracks.find((t) => t.participant.isLocal && isTrackReference(t)) as TrackReference | undefined;
-  const remoteVideos = tracks.filter(
-    (t) => !t.participant.isLocal && isTrackReference(t) && !t.publication.isMuted,
+  const remoteVideos = subscribed.filter(
+    (t) => !t.participant.isLocal && isTrackReference(t) && t.publication.track && !t.publication.isMuted,
   ) as TrackReference[];
   const showLocal = video && isCameraEnabled && local && !local.publication.isMuted;
 
